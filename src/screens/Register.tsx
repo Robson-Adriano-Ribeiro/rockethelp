@@ -1,9 +1,13 @@
 import { VStack } from 'native-base';
+import { useNavigation } from '@react-navigation/native'
+
 import Header from '../components/Header';
 import Input from '../components/Input';
 import Button from '../components/Button';
 
 export default function Register() {
+    const navigation = useNavigation()
+
     return (
         <VStack flex={1} p={6} bg="gray.600">
             <Header title='Nova Solicitação' />
