@@ -1,6 +1,6 @@
 import { VStack, Input as NativeBaseInput, IInputProps } from 'native-base'
 
-export function Input({ ...rest }: IInputProps) {
+export default function Input({ ...rest }: IInputProps) {
     return (
         <NativeBaseInput
             bg="gray.700"
