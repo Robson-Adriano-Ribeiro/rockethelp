@@ -8,7 +8,7 @@ import { useState } from 'react'
 
 export default function SignIn() {
     const { colors } = useTheme()
-    const [name, setName] = useState('')
+    const [name, setName] = useState('s')
     const [userName, setUserName] = useState('')
     const [password, setPassword] = useState('')
 
