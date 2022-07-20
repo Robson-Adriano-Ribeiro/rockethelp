@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native'
 import { VStack, HStack, IconButton, useTheme, Text, Heading, FlatList, Center } from 'native-base';
 import { SignOut, ChatTeardropText, User } from 'phosphor-react-native'
 import auth from '@react-native-firebase/auth'
+import firestore from '@react-native-firebase/firestore'
 
 import Logo from '../assets/logo_secondary.svg'
 import Filter from '../components/Filter';
@@ -11,42 +12,14 @@ import Button from '../components/Button';
 import Loading from '../components/Loading'
 
 import Order, { OrderProps } from '../components/Orders';
+import dataFormat from '../utils/firestoreDataFormat';
 
 export default function Home() {
     const navigation = useNavigation()
     const { colors } = useTheme()
+    const [isLoading, setIsLoading] = useState(true)
     const [statusSelected, setStatusSelected] = useState<'open' | 'closed'>('open')
-    const [orders, setOrders] = useState<OrderProps[]>([
-        {
-            id: '1',
-            patrimony: '123456',
-            when: '18/07/2022 as 14:00',
-            status: 'open'
-        },
-        {
-            id: '2',
-            patrimony: '789456',
-            when: '18/07/2022 as 16:00',
-            status: 'closed'
-        }, {
-            id: '3',
-            patrimony: '123456',
-            when: '18/07/2022 as 14:00',
-            status: 'open'
-        },
-        {
-            id: '4',
-            patrimony: '789456',
-            when: '18/07/2022 as 16:00',
-            status: 'closed'
-        }, {
-            id: '5',
-            patrimony: '789456',
-            when: '18/07/2022 as 16:00',
-            status: 'closed'
-        },
-    ])
-    let [ordersFiltered, setOrdersFiltered] = useState<OrderProps[]>([])
+    const [orders, setOrders] = useState<OrderProps[]>([])
 
     function handleOpenNewOrder() {
         navigation.navigate('new')
@@ -64,16 +37,33 @@ export default function Home() {
             })
     }
 
-    function filterOrdersByStatus() {
-        setOrdersFiltered(orders.filter((order) => order.status === statusSelected))
+    function getOrders() {
+        setIsLoading(true)
+        const subscriber = firestore()
+            .collection('orders')
+            .where('status', '==', statusSelected)
+            .onSnapshot(snapshot => {
+                const data = snapshot.docs.map(doc => {
+                    const { patrimony, description, status, created_at } = doc.data()
+
+                    return {
+                        id: doc.id,
+                        patrimony,
+                        description,
+                        status,
+                        when: dataFormat(created_at)
+                    }
+                })
+
+                setOrders(data)
+                setIsLoading(false)
+            })
+
+        return subscriber
     }
 
     useEffect(() => {
-        filterOrdersByStatus()
-    }, [])
-
-    useEffect(() => {
-        filterOrdersByStatus()
+        getOrders()
     }, [statusSelected])
 
     return (
@@ -94,28 +84,31 @@ export default function Home() {
             <VStack flex={1} px={6}>
                 <HStack w="full" mt={8} mb={4} justifyContent="space-between" alignItems="center">
                     <Heading color="gray.100">Solicitações</Heading>
-                    <Text color="gray.200">{ordersFiltered.length}</Text>
+                    <Text color="gray.200">{orders.length}</Text>
                 </HStack>
                 <HStack space={3} mb={8}>
                     <Filter title="em andamento" type="open" isActive={statusSelected === 'open'} onPress={() => setStatusSelected('open')}
                     />
                     <Filter title="finalizados" type="closed" isActive={statusSelected === 'closed'} onPress={() => setStatusSelected('closed')} />
                 </HStack>
-                <FlatList
-                    data={ordersFiltered}
-                    keyExtractor={item => item.id}
-                    renderItem={({ item }) => <Order data={item} onPress={() => handleOpenDetails(item.id)} />}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 100 }}
-                    ListEmptyComponent={() => (
-                        <Center>
-                            <ChatTeardropText color={colors.gray[300]} size={40} />
-                            <Text color="gray.300" fontSize="xl" mt={6} textAlign="center">
-                                Você ainda não possui {'\n'}
-                                solicitações {statusSelected === 'open' ? 'em andamento' : 'finalizados'}
-                            </Text>
-                        </Center>
-                    )} />
+
+                {isLoading ?
+                    <Loading /> :
+                    <FlatList
+                        data={orders}
+                        keyExtractor={item => item.id}
+                        renderItem={({ item }) => <Order data={item} onPress={() => handleOpenDetails(item.id)} />}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ paddingBottom: 100 }}
+                        ListEmptyComponent={() => (
+                            <Center>
+                                <ChatTeardropText color={colors.gray[300]} size={40} />
+                                <Text color="gray.300" fontSize="xl" mt={6} textAlign="center">
+                                    Você ainda não possui {'\n'}
+                                    solicitações {statusSelected === 'open' ? 'em andamento' : 'finalizados'}
+                                </Text>
+                            </Center>
+                        )} />}
             </VStack>
 
             <Button title="Nova Solicitação" onPress={handleOpenNewOrder} />
