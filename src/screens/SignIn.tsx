@@ -1,19 +1,47 @@
+import { useState } from 'react'
+import { Alert } from 'react-native';
 import { Heading, VStack, Icon, useTheme } from 'native-base'
 import { Envelope, Key } from 'phosphor-react-native'
+import auth from '@react-native-firebase/auth'
 
-import { Input } from '../components/Input'
-import { Button } from '../components/Button'
+import Input from '../components/Input'
+import Button from '../components/Button'
 import Logo from '../assets/logo_primary.svg'
-import { useState } from 'react'
+
 
 export default function SignIn() {
     const { colors } = useTheme()
+    const [isLoading, setIsLoading] = useState<boolean>(false)
     const [name, setName] = useState('s')
     const [userName, setUserName] = useState('')
     const [password, setPassword] = useState('')
 
     function handleSingIn() {
-        console.log(userName, password)
+        if (!userName || !password) {
+            return Alert.alert('Entrar', 'Informe email e senha')
+        }
+
+        setIsLoading(true)
+        auth()
+            .signInWithEmailAndPassword(userName, password)
+            .then(response => {
+            })
+            .catch((error) => {
+                console.log('Error signIn', error)
+
+                if (error.code === 'auth/invalid-email') {
+                    return Alert.alert('Entrar', 'E-mail inválido.')
+                }
+
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    return Alert.alert('Entrar', 'Usuário ou senha inválida.')
+                }
+
+                return Alert.alert('Entrar', 'Não foi possível acessar.')
+            }).finally(() => {
+                setIsLoading(false)
+            })
+
     }
 
     return (
@@ -36,7 +64,8 @@ export default function SignIn() {
             <Button title='Entrar'
                 mt={8}
                 w="full"
-                onPress={handleSingIn} />
+                onPress={handleSingIn}
+                isLoading={isLoading} />
         </VStack>
     )
 }

@@ -5,7 +5,7 @@ import { useFonts, Roboto_400Regular, Roboto_700Bold } from '@expo-google-fonts/
 
 import Routes from './src/routes'
 import { THEME } from './src/styles/theme'
-import { Loading } from './src/components/Loading'
+import Loading from './src/components/Loading'
 
 export default function App() {
   const [fontsLoaded] = useFonts({ Roboto_400Regular, Roboto_700Bold })
