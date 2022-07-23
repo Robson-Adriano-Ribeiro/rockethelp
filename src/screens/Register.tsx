@@ -28,7 +28,7 @@ export default function Register() {
                 patrimony,
                 description,
                 status: 'open',
-                created_at: firestore.FieldValue.serverTimestamp
+                created_at: firestore.FieldValue.serverTimestamp()
             })
             .then(() => {
                 Alert.alert('Registrar', 'Solicitação registrada com sucesso.')
@@ -39,7 +39,6 @@ export default function Register() {
                 return Alert.alert('Registrar', 'Não foi possível registrar a solicitação.')
             })
     }
-
 
     return (
         <VStack flex={1} p={6} bg="gray.600">

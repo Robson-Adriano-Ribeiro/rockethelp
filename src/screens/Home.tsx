@@ -64,6 +64,10 @@ export default function Home() {
 
     useEffect(() => {
         getOrders()
+    }, [])
+
+    useEffect(() => {
+        getOrders()
     }, [statusSelected])
 
     return (
